@@ -7,7 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="My本棚">
 <meta name="theme-color" content="#f6f7f2">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
+
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net blob:; worker-src blob:; child-src blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://cdn.jsdelivr.net https://tessdata.projectnaptha.com blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
+
 <title>My本棚｜iPhone版</title>
 <style>
 :root{color-scheme:light;--bg:#f6f7f2;--fg:#25332b;--deep:#24593d;--line:#dae3d9;--soft:#eaf2e9}
@@ -59,7 +61,7 @@ nav button.on{background:var(--soft);color:var(--deep)}
 <body>
 <header>
 <h1>📚 My本棚</h1>
-<small>写真でかんたん登録・iPhone向け v0.2</small>
+<small>写真でかんたん登録・iPhone向け v0.3</small>
 </header>
 <main>
 
@@ -544,6 +546,117 @@ async function init(){
  $('restore').onchange=e=>restore(e.target.files[0]);
 }
 init();
+ 
+/* My本棚 v0.3 表紙写真OCR：既存データベースは変更しません */
+(() => {
+  const area = document.querySelector('.camera');
+  if (!area) return;
+  const box = document.createElement('div');
+  box.style.cssText = 'margin-top:12px;padding:12px;text-align:left;background:white;border:1px solid #dae3d9;border-radius:12px';
+  box.innerHTML = `<b>✨ 表紙からタイトル・著者を自動入力</b>
+    <p id="ocrStatus" class="hint" role="status">写真を撮ると文字認識します。最初の1回は日本語認識データを取得します。</p>
+    <div id="ocrCandidates"></div>
+    <button id="ocrRetry" type="button" style="display:none;width:100%">もう一度認識する</button>
+    <details><summary class="hint">認識できないとき：iPhoneの文字コピーを使う</summary>
+      <p class="hint">「写真」アプリで表紙を開き、文字を長押ししてコピー。下に貼り付けてください。</p>
+      <textarea id="ocrPaste" placeholder="写真からコピーした文字を貼り付け"></textarea>
+      <button id="ocrFromPaste" type="button" style="width:100%">貼り付けた文字を候補にする</button>
+    </details>`;
+  area.append(box);
+  const el = id => document.getElementById(id);
+  let worker, lastPhoto, running = false, loading;
+  function lines(text) {
+    const seen = new Set();
+    return String(text).split(/[\r\n]+/).map(s => s.normalize('NFKC')
+      .replace(/([一-龯ぁ-んァ-ヶ])\s+(?=[一-龯ぁ-んァ-ヶ])/g,'$1')
+      .replace(/^[\s「『【“]+|[\s」』】”]+$/g,'').trim())
+      .filter(s => {
+        if (s.length < 2 || s.length > 65 || seen.has(s) ||
+            /^(ISBN|定価|価格|税込|https?:|www\.)/i.test(s)) return false;
+        seen.add(s); return true;
+      }).slice(0,16);
+  }
+  function putCandidates(text) {
+    const out = el('ocrCandidates'); out.replaceChildren();
+    const list = lines(text), title = el('bookTitle'), author = el('author');
+    if (!list.length) {
+      el('ocrStatus').textContent = '文字が見つかりませんでした。撮り直すか手入力してください。';
+      return;
+    }
+    if (!title.value.trim()) title.value = list.find(s => !/^(著者|著|作|訳)[:：\s]/.test(s)) || list[0];
+    const possibleAuthor = list.map(s =>
+      s.match(/^(?:著者|著|作者|作|原作)[:：\s]+(.{2,30})$/)?.[1] ||
+      s.match(/^(.{2,25}?)\s*(?:著|作)$/)?.[1]
+    ).find(Boolean);
+    if (possibleAuthor && !author.value.trim()) author.value = possibleAuthor;
+    el('ocrStatus').textContent = '候補を入力しました。正しいか確認してください。別の候補も選べます。';
+    for (const s of list.slice(0,10)) {
+      const row = document.createElement('div');
+      row.style.cssText = 'border-top:1px solid #e5ebe3;padding:8px 0;overflow-wrap:anywhere';
+      const line = document.createElement('div'); line.textContent = s;
+      const t = document.createElement('button'); t.type='button'; t.textContent='タイトルにする';
+      const a = document.createElement('button'); a.type='button'; a.textContent='著者にする';
+      for (const btn of [t,a]) btn.style.cssText = 'font-size:12px;margin:5px 5px 0 0;padding:7px';
+      t.onclick = () => { title.value=s; }; a.onclick = () => { author.value=s; };
+      row.append(line,t,a); out.append(row);
+    }
+  }
+  function loadOCR() {
+    if (window.Tesseract?.createWorker) return Promise.resolve(window.Tesseract);
+    if (!loading) loading = new Promise((ok,no) => {
+      const sc=document.createElement('script');
+      sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';
+      sc.onload=()=>window.Tesseract?.createWorker ? ok(window.Tesseract) : no(Error('engine'));
+      sc.onerror=()=>no(Error('network'));
+      document.head.append(sc);
+    }).catch(e=>{ loading=null; throw e; });
+    return loading;
+  }
+  async function shrink(file) {
+    const url=URL.createObjectURL(file), img=new Image();
+    try {
+      await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url;});
+      const k=Math.min(1,1800/Math.max(img.naturalWidth,img.naturalHeight));
+      const cv=document.createElement('canvas');
+      cv.width=Math.max(1,Math.round(img.naturalWidth*k));
+      cv.height=Math.max(1,Math.round(img.naturalHeight*k));
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      return await new Promise((ok,no)=>cv.toBlob(b=>b?ok(b):no(Error('image')),'image/jpeg',.87));
+    } finally {URL.revokeObjectURL(url);}
+  }
+  async function recognize(file) {
+    if (!file || running) return;
+    lastPhoto=file; running=true;
+    el('ocrCandidates').replaceChildren(); el('save').disabled=true;
+    el('ocrRetry').style.display='none';
+    try {
+      el('ocrStatus').textContent='日本語文字認識を準備しています…';
+      const T=await loadOCR();
+      if (!worker) worker=await T.createWorker(['jpn','eng'],1);
+      el('ocrStatus').textContent='表紙を読み取り中…';
+      const picture=await shrink(file);
+      const result=await worker.recognize(picture);
+      putCandidates(result.data.text);
+    } catch(e) {
+      el('ocrStatus').textContent='認識に失敗しました。通信環境を確認するか、下の文字コピーをお試しください。';
+    } finally {
+      running=false; el('save').disabled=false;
+      el('ocrRetry').style.display=lastPhoto?'block':'none';
+    }
+  }
+  ['cameraInput','libraryInput'].forEach(id =>
+    el(id).addEventListener('change',e=>recognize(e.target.files[0])));
+  el('ocrRetry').onclick=()=>recognize(lastPhoto);
+  el('ocrFromPaste').onclick=()=>putCandidates(el('ocrPaste').value);
+  function clear() {
+    lastPhoto=null; el('ocrCandidates').replaceChildren();
+    el('ocrStatus').textContent='写真を撮ると文字認識します。';
+    el('ocrRetry').style.display='none'; el('ocrPaste').value='';
+  }
+  el('clear').addEventListener('click',clear);
+  el('gotoAdd').addEventListener('click',clear);
+})();
+
 </script>
 </body>
 </html>
