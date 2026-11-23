@@ -1,0 +1,734 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="My本棚">
+<meta name="theme-color" content="#f5f7f3">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://www.googleapis.com; media-src blob:; form-action 'none'">
+<title>My本棚</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f7f3;color:#263329;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif}
+header{background:#fff;padding:22px 18px;border-bottom:1px solid #dfe7dd}
+h1{margin:0;color:#35684a;font-size:25px}
+h2{font-size:21px}
+main{max-width:700px;margin:auto;padding:18px 15px 110px}
+section{display:none}
+section.active{display:block}
+.panel,.book,.stat{background:#fff;border:1px solid #dfe6dc;border-radius:15px;padding:15px}
+.panel{margin:14px 0}
+label{display:block;font-size:14px;font-weight:600;margin:15px 0 7px}
+input:not([type=file]):not([type=checkbox]),select,textarea{width:100%;padding:12px;border:1px solid #ccd7cb;border-radius:9px;background:#fff;color:#263329;font-size:16px}
+textarea{min-height:76px}
+button{border:0;border-radius:10px;background:#e6eee6;color:#315b40;padding:12px;font-size:15px;font-weight:600;cursor:pointer}
+button.primary{background:#39724d;color:#fff}
+button:disabled{opacity:.45}
+.wide{width:100%;margin-top:12px}
+.row{display:flex;gap:8px;align-items:center}
+.row input{flex:1;min-width:0}
+.muted{color:#66736a;font-size:13px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:15px 0}
+.stat{text-align:center;padding:12px 4px}
+.stat b{display:block;color:#39724d;font-size:27px}
+.stat span{font-size:11px;color:#66736a}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:15px}
+.book{padding:10px;min-width:0}
+.book h3{font-size:15px;overflow-wrap:anywhere}
+.book p{font-size:12px;color:#67756a}
+.book button{width:100%}
+.cover{height:155px;background:linear-gradient(135deg,#90a58e,#3e6247);color:white;border-radius:9px;display:flex;justify-content:center;align-items:center;text-align:center;padding:10px;overflow:hidden;font-weight:bold}
+.cover img{width:100%;height:100%;object-fit:cover}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #dfe6dc;padding:8px 4px max(8px,env(safe-area-inset-bottom))}
+nav button{flex:1;background:transparent;font-size:12px;padding:10px 3px}
+nav button.on{background:#e5f0e6;color:#286840}
+#cameraBox{display:none;background:#172019;padding:12px;border-radius:12px;color:white}
+#cameraBox video{width:100%;border-radius:8px}
+#preview{max-width:140px;max-height:190px;display:none;margin:10px 0}
+#shareText{white-space:pre-wrap;background:#eff3ee;padding:13px;border-radius:10px;line-height:1.8;overflow-wrap:anywhere}
+.danger{color:#b23832}
+</style>
+</head>
+<body>
+<header>
+<h1>📚 My本棚</h1>
+<div class="muted">わたしだけの本棚管理アプリ</div>
+</header>
+<main>
+
+<section id="shelf" class="active">
+<h2>わたしの本棚</h2>
+<div class="stats">
+<div class="stat"><b id="total">0</b><span>登録冊数</span></div>
+<div class="stat"><b id="genres">0</b><span>ジャンル</span></div>
+<div class="stat"><b id="finished">0</b><span>読了</span></div>
+</div>
+<input id="search" placeholder="タイトル・著者・ISBNで検索">
+<label>ジャンルで絞り込み</label>
+<select id="filter"><option value="">すべて</option></select>
+<div id="books" class="grid"></div>
+<p id="empty" class="muted">本がありません。「本を登録」から追加してください。</p>
+</section>
+
+<section id="add">
+<h2 id="formTitle">本を登録</h2>
+<div class="panel">
+<button class="primary wide" id="scanBtn">📷 バーコードを読み取る</button>
+<div id="cameraBox">
+<video id="video" autoplay muted playsinline></video>
+<p class="muted" style="color:white">バーコードを中央に大きく映してください。</p>
+<button id="stopBtn" class="wide">カメラを終了</button>
+</div>
+<p class="muted">読み取れない場合はISBNを手入力できます。</p>
+<label>ISBN（任意）</label>
+<div class="row">
+<input id="isbn" inputmode="numeric" placeholder="978から始まる13桁">
+<button id="lookup">本を検索</button>
+</div>
+<p id="lookupStatus" class="muted">検索ボタンを押した場合のみISBNをGoogle Booksに送信します。</p>
+<label>本のタイトル（必須）</label>
+<input id="bookTitle" placeholder="タイトル">
+<label>著者</label>
+<input id="author" placeholder="著者名">
+<label>ジャンル</label>
+<select id="genre">
+<option>小説</option>
+<option>漫画</option>
+<option>ビジネス</option>
+<option>IT・技術</option>
+<option>子ども・絵本</option>
+<option>学習・参考書</option>
+<option>実用・暮らし</option>
+<option selected>その他</option>
+</select>
+<label>読書状況</label>
+<select id="status">
+<option>未読</option>
+<option>読書中</option>
+<option>読了</option>
+</select>
+<label>購入日</label>
+<input id="purchaseDate" type="date">
+<label>表紙写真を保存（任意）</label>
+<input id="photo" type="file" accept="image/*" capture="environment">
+<img id="preview" alt="表紙写真">
+<p class="muted">写真は端末内に縮小保存します。写真からのタイトル自動認識は今後追加予定です。</p>
+<label>メモ（LINE共有対象外）</label>
+<textarea id="note"></textarea>
+<button id="saveBtn" class="primary wide">本棚に保存する</button>
+<button id="clearBtn" class="wide">新しい本を入力する</button>
+<button id="deleteBtn" class="wide danger" style="display:none">この本を削除</button>
+</div>
+</section>
+
+<section id="share">
+<h2>LINEで本棚を共有</h2>
+<div class="panel">
+<label>共有するジャンル</label>
+<select id="shareGenre"><option value="">すべて</option></select>
+<label>共有形式</label>
+<select id="shareType">
+<option value="titles">本のタイトル一覧</option>
+<option value="authors">タイトルと著者</option>
+<option value="counts">ジャンル別の冊数のみ</option>
+</select>
+<p class="muted">購入日・表紙写真・メモは共有しません。</p>
+<div id="shareText"></div>
+<label>
+<input type="checkbox" id="agree"> この内容を共有してよい
+</label>
+<button id="shareBtn" class="primary wide" disabled>LINEなどに共有</button>
+<button id="copyBtn" class="wide">共有文をコピー</button>
+</div>
+</section>
+
+<section id="settings">
+<h2>設定・バックアップ</h2>
+<div class="panel">
+<p class="muted">本棚データはこの端末のブラウザ保存領域に保存します。GitHubには送信しません。端末内の保存データそのものはアプリ独自には暗号化されません。</p>
+<h3>暗号化バックアップ</h3>
+<p class="muted">Safariのデータ削除に備えて定期的にバックアップしてください。</p>
+<label>バックアップ用パスワード（8文字以上）</label>
+<input id="password" type="password">
+<button id="backupBtn" class="primary wide">暗号化バックアップを保存</button>
+<label>バックアップから復元</label>
+<input id="restoreFile" type="file" accept=".mybooks,application/json">
+<p class="muted">復元すると現在の本棚を置き換えます。パスワードを忘れると復元できません。</p>
+</div>
+</section>
+
+</main>
+<nav>
+<button class="on" data-page="shelf">📚 本棚</button>
+<button data-page="add">＋ 登録</button>
+<button data-page="share">↗ 共有</button>
+<button data-page="settings">⚙ 設定</button>
+</nav>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+let db, books=[], editing=null, cover="", stream=null, scanTimer=null;
+const isbnDigits = s => String(s||"").replace(/\D/g,"");
+
+function validISBN(s){
+  let n=isbnDigits(s);
+  if(n.length!==13)return false;
+  let sum=0;
+  for(let i=0;i<13;i++)sum+=Number(n[i])*(i%2?3:1);
+  return sum%10===0;
+}
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    let r=indexedDB.open("mybooks-local-v1",1);
+    r.onupgradeneeded=()=>{
+      r.result.createObjectStore("books",{keyPath:"id"});
+    };
+    r.onsuccess=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error);
+  });
+}
+
+function getAll(){
+  return new Promise((resolve,reject)=>{
+    let r=db.transaction("books").objectStore("books").getAll();
+    r.onsuccess=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error);
+  });
+}
+
+function putBook(book){
+  return new Promise((resolve,reject)=>{
+    let t=db.transaction("books","readwrite");
+    t.objectStore("books").put(book);
+    t.oncomplete=resolve;
+    t.onerror=()=>reject(t.error);
+  });
+}
+
+function removeBook(id){
+  return new Promise((resolve,reject)=>{
+    let t=db.transaction("books","readwrite");
+    t.objectStore("books").delete(id);
+    t.oncomplete=resolve;
+    t.onerror=()=>reject(t.error);
+  });
+}
+
+function page(name){
+  stopCamera();
+  document.querySelectorAll("main section").forEach(s=>{
+    s.classList.toggle("active",s.id===name);
+  });
+  document.querySelectorAll("nav button").forEach(b=>{
+    b.classList.toggle("on",b.dataset.page===name);
+  });
+  window.scrollTo(0,0);
+}
+
+async function refresh(){
+  books=await getAll();
+  render();
+}
+
+function fillGenres(id,values){
+  let e=$(id),old=e.value;
+  e.replaceChildren(new Option("すべて",""));
+  values.forEach(v=>e.add(new Option(v,v)));
+  e.value=old;
+}
+
+function render(){
+  let gs=[...new Set(books.map(b=>b.genre))].sort();
+  $("total").textContent=books.length;
+  $("genres").textContent=gs.length;
+  $("finished").textContent=books.filter(b=>b.status==="読了").length;
+  fillGenres("filter",gs);
+  fillGenres("shareGenre",gs);
+
+  let q=$("search").value.toLowerCase();
+  let g=$("filter").value;
+  let found=books.filter(b=>
+    (!g||b.genre===g)&&
+    [b.title,b.author,b.isbn].some(v=>
+      String(v||"").toLowerCase().includes(q)
+    )
+  ).sort((a,b)=>b.created.localeCompare(a.created));
+
+  $("books").replaceChildren();
+  $("empty").hidden=found.length>0;
+
+  found.forEach(b=>{
+    let card=document.createElement("article");
+    card.className="book";
+    let c=document.createElement("div");
+    c.className="cover";
+    if(b.cover){
+      let img=document.createElement("img");
+      img.src=b.cover;
+      img.alt="";
+      c.append(img);
+    }else{
+      c.textContent=b.title;
+    }
+    let h=document.createElement("h3");
+    h.textContent=b.title;
+    let info=document.createElement("p");
+    info.textContent=(b.author||"著者未登録")+" / "+b.genre+" / "+b.status;
+    let btn=document.createElement("button");
+    btn.textContent="詳細・編集";
+    btn.onclick=()=>editBook(b.id);
+    card.append(c,h,info,btn);
+    $("books").append(card);
+  });
+  updateShare();
+}
+
+function clearForm(){
+  editing=null;
+  cover="";
+  ["isbn","bookTitle","author","purchaseDate","note"].forEach(id=>$(id).value="");
+  $("genre").value="その他";
+  $("status").value="未読";
+  $("photo").value="";
+  $("preview").style.display="none";
+  $("formTitle").textContent="本を登録";
+  $("deleteBtn").style.display="none";
+  $("lookupStatus").textContent="検索ボタンを押した場合のみISBNをGoogle Booksに送信します。";
+}
+
+function editBook(id){
+  let b=books.find(x=>x.id===id);
+  if(!b)return;
+  clearForm();
+  editing=id;
+  $("isbn").value=b.isbn||"";
+  $("bookTitle").value=b.title;
+  $("author").value=b.author||"";
+  $("genre").value=b.genre;
+  $("status").value=b.status;
+  $("purchaseDate").value=b.purchaseDate||"";
+  $("note").value=b.note||"";
+  cover=b.cover||"";
+  if(cover){
+    $("preview").src=cover;
+    $("preview").style.display="block";
+  }
+  $("formTitle").textContent="本を編集";
+  $("deleteBtn").style.display="block";
+  page("add");
+}
+
+async function saveBook(){
+  let title=$("bookTitle").value.trim();
+  let isbn=isbnDigits($("isbn").value);
+  if(!title)return alert("本のタイトルを入力してください。");
+  if(isbn&&!validISBN(isbn))return alert("ISBNの13桁を確認してください。");
+  let duplicate=books.find(b=>
+    b.id!==editing&&(
+      (isbn&&b.isbn===isbn)||
+      b.title.toLowerCase()===title.toLowerCase()
+    )
+  );
+  if(duplicate&&!confirm("この本は登録済みです。重複して登録しますか？"))return;
+  let old=books.find(b=>b.id===editing);
+  let book={
+    id:editing||crypto.randomUUID(),
+    created:old?.created||new Date().toISOString(),
+    isbn,
+    title,
+    author:$("author").value.trim(),
+    genre:$("genre").value,
+    status:$("status").value,
+    purchaseDate:$("purchaseDate").value,
+    note:$("note").value,
+    cover
+  };
+  try{
+    await putBook(book);
+    clearForm();
+    await refresh();
+    page("shelf");
+    alert("本棚に保存しました。");
+  }catch(e){
+    alert("保存できませんでした。端末の空き容量を確認してください。");
+  }
+}
+
+async function loadPhoto(file){
+  if(!file)return;
+  if(file.size>20000000)return alert("20MB以下の写真を選んでください。");
+  let url=URL.createObjectURL(file);
+  let img=new Image();
+  try{
+    await new Promise((ok,ng)=>{
+      img.onload=ok;
+      img.onerror=ng;
+      img.src=url;
+    });
+    let scale=Math.min(1,480/img.width,650/img.height);
+    let cv=document.createElement("canvas");
+    cv.width=Math.round(img.width*scale);
+    cv.height=Math.round(img.height*scale);
+    cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+    cover=cv.toDataURL("image/jpeg",0.67);
+    $("preview").src=cover;
+    $("preview").style.display="block";
+  }catch(e){
+    alert("この写真は読み込めませんでした。");
+  }finally{
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function lookupISBN(){
+  let n=isbnDigits($("isbn").value);
+  if(!validISBN(n))return alert("正しい13桁のISBNを入力してください。");
+  $("lookupStatus").textContent="書籍情報を検索しています…";
+  try{
+    let url="https://www.googleapis.com/books/v1/volumes?q=isbn:"+encodeURIComponent(n)+"&maxResults=1";
+    let r=await fetch(url);
+    if(!r.ok)throw Error("API error");
+    let j=await r.json();
+    let v=j.items?.[0]?.volumeInfo;
+    if(!v){
+      $("lookupStatus").textContent="書籍情報が見つかりませんでした。手入力してください。";
+      return;
+    }
+    $("bookTitle").value=v.title||"";
+    $("author").value=(v.authors||[]).join("、");
+    $("lookupStatus").textContent="見つかりました。内容を確認して保存してください。";
+  }catch(e){
+    $("lookupStatus").textContent="検索できませんでした。手入力してください。";
+  }
+}
+
+function shareMessage(){
+  let g=$("shareGenre").value;
+  let type=$("shareType").value;
+  let list=books.filter(b=>!g||b.genre===g);
+  if(type==="counts"){
+    let counts={};
+    list.forEach(b=>counts[b.genre]=(counts[b.genre]||0)+1);
+    return "【私の本棚】\n"+
+      Object.entries(counts).map(([k,n])=>k+"："+n+"冊").join("\n")+
+      "\n合計："+list.length+"冊";
+  }
+  return "【私の本棚"+(g?"・"+g:"")+"】\n"+
+    "登録："+list.length+"冊\n"+
+    list.map((b,i)=>(i+1)+". "+b.title+
+      (type==="authors"&&b.author?"／"+b.author:"")
+    ).join("\n");
+}
+
+function updateShare(){
+  $("shareText").textContent=shareMessage();
+  $("agree").checked=false;
+  $("shareBtn").disabled=true;
+}
+
+async function shareBooks(){
+  if(!$("agree").checked)return;
+  try{
+    if(navigator.share){
+      await navigator.share({title:"私の本棚",text:shareMessage()});
+    }else{
+      await navigator.clipboard.writeText(shareMessage());
+      alert("コピーしました。LINEに貼り付けてください。");
+    }
+  }catch(e){
+    if(e.name!=="AbortError")alert("共有できませんでした。コピー機能をお試しください。");
+  }
+}
+
+const encoder=new TextEncoder();
+const decoder=new TextDecoder();
+function b64(a){
+  let s="";
+  new Uint8Array(a).forEach(v=>s+=String.fromCharCode(v));
+  return btoa(s);
+}
+function un64(s){
+  return Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+}
+async function makeKey(password,salt){
+  let base=await crypto.subtle.importKey(
+    "raw",encoder.encode(password),"PBKDF2",false,["deriveKey"]
+  );
+  return crypto.subtle.deriveKey(
+    {name:"PBKDF2",salt,iterations:250000,hash:"SHA-256"},
+    base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]
+  );
+}
+
+async function backup(){
+  let password=$("password").value;
+  if(password.length<8)return alert("8文字以上のパスワードを入力してください。");
+  try{
+    let salt=crypto.getRandomValues(new Uint8Array(16));
+    let iv=crypto.getRandomValues(new Uint8Array(12));
+    let key=await makeKey(password,salt);
+    let data=encoder.encode(JSON.stringify(books));
+    let encrypted=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,data);
+    let output={
+      format:"MYBOOKS1",
+      salt:b64(salt),
+      iv:b64(iv),
+      data:b64(encrypted)
+    };
+    let blob=new Blob([JSON.stringify(output)],{type:"application/json"});
+    let url=URL.createObjectURL(blob);
+    let a=document.createElement("a");
+    a.href=url;
+    a.download="mybooks-"+new Date().toISOString().slice(0,10)+".mybooks";
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+    $("password").value="";
+    alert("暗号化バックアップを作成しました。iPhoneの「ファイル」に保存してください。");
+  }catch(e){
+    alert("バックアップを作成できませんでした。");
+  }
+}
+
+async function restore(file){
+  if(!file)return;
+  let password=$("password").value;
+  if(!password)return alert("バックアップ用パスワードを入力してください。");
+  if(file.size>50000000)return alert("ファイルが大きすぎます。");
+  try{
+    let obj=JSON.parse(await file.text());
+    if(obj.format!=="MYBOOKS1")throw Error("format");
+    let key=await makeKey(password,un64(obj.salt));
+    let result=await crypto.subtle.decrypt(
+      {name:"AES-GCM",iv:un64(obj.iv)},key,un64(obj.data)
+    );
+    let list=JSON.parse(decoder.decode(result));
+    if(!Array.isArray(list)||list.length>5000||
+       list.some(b=>typeof b.id!=="string"||typeof b.title!=="string"||
+       !b.id||!b.title||
+       (b.cover&&(!/^data:image\/jpeg;base64,/.test(b.cover)||
+       b.cover.length>1000000))))throw Error("data");
+    if(!confirm("今の本棚をバックアップの内容で置き換えますか？"))return;
+    await new Promise((ok,ng)=>{
+      let t=db.transaction("books","readwrite");
+      let store=t.objectStore("books");
+      store.clear();
+      list.forEach(b=>store.put(b));
+      t.oncomplete=ok;
+      t.onerror=()=>ng(t.error);
+    });
+    $("password").value="";
+    await refresh();
+    page("shelf");
+    alert("復元しました。");
+  }catch(e){
+    alert("復元できませんでした。パスワードやファイルを確認してください。");
+  }
+  $("restoreFile").value="";
+}
+
+// カメラでEAN-13バーコードを読み取る簡易処理
+const L=["0001101","0011001","0010011","0111101","0100011","0110001","0101111","0111011","0110111","0001011"];
+const G=["0100111","0110011","0011011","0100001","0011101","0111001","0000101","0010001","0001001","0010111"];
+const R=["1110010","1100110","1101100","1000010","1011100","1001110","1010000","1000100","1001000","1110100"];
+const P=["LLLLLL","LLGLGG","LLGGLG","LLGGGL","LGLLGG","LGGLLG","LGGGLL","LGLGLG","LGLGGL","LGGLGL"];
+
+function decodeBits(bits){
+  if(bits.length!==95||bits.slice(0,3)!=="101"||
+     bits.slice(45,50)!=="01010"||bits.slice(92)!=="101")return null;
+  let left="",parity="",right="";
+  for(let i=0;i<6;i++){
+    let x=bits.slice(3+i*7,10+i*7);
+    let n=L.indexOf(x);
+    if(n>=0){left+=n;parity+="L";}
+    else{
+      n=G.indexOf(x);
+      if(n<0)return null;
+      left+=n;parity+="G";
+    }
+  }
+  let first=P.indexOf(parity);
+  if(first<0)return null;
+  for(let i=0;i<6;i++){
+    let n=R.indexOf(bits.slice(50+i*7,57+i*7));
+    if(n<0)return null;
+    right+=n;
+  }
+  let code=String(first)+left+right;
+  return /^(978|979)/.test(code)&&validISBN(code)?code:null;
+}
+
+function decodeLine(pixels){
+  let runs=[];
+  pixels.forEach((v,i)=>{
+    let r=runs[runs.length-1];
+    if(!r||r.v!==v)runs.push({v,start:i,len:1});
+    else r.len++;
+  });
+  for(let i=1;i<runs.length-3;i++){
+    let a=runs[i],b=runs[i+1],c=runs[i+2];
+    if(a.v!==1||b.v!==0||c.v!==1)continue;
+    let unit=(a.len+b.len+c.len)/3;
+    if(unit<1.3||unit>13||
+       Math.max(a.len,b.len,c.len)/Math.min(a.len,b.len,c.len)>1.8||
+       runs[i-1].len<2.5*unit)continue;
+    for(let factor of [.96,.98,1,1.02,1.04]){
+      let step=unit*factor;
+      if(a.start+95*step>=pixels.length)continue;
+      let bits="";
+      for(let j=0;j<95;j++){
+        bits+=pixels[Math.round(a.start+(j+.5)*step)]?"1":"0";
+      }
+      let code=decodeBits(bits);
+      if(code)return code;
+    }
+  }
+  return null;
+}
+
+const scanCanvas=document.createElement("canvas");
+scanCanvas.width=960;
+scanCanvas.height=540;
+
+function scanFrame(video){
+  let ctx=scanCanvas.getContext("2d",{willReadFrequently:true});
+  ctx.drawImage(video,0,0,960,540);
+  let data=ctx.getImageData(0,0,960,540).data;
+  for(let fraction of [.5,.45,.55,.4,.6,.35,.65]){
+    let y=Math.round(fraction*539);
+    let values=[],lo=255,hi=0;
+    for(let x=0;x<960;x++){
+      let z=0;
+      for(let dy=-1;dy<=1;dy++){
+        let offset=((y+dy)*960+x)*4;
+        z+=data[offset]*.299+data[offset+1]*.587+data[offset+2]*.114;
+      }
+      let v=z/3;
+      values.push(v);
+      lo=Math.min(lo,v);
+      hi=Math.max(hi,v);
+    }
+    if(hi-lo<55)continue;
+    let bits=values.map(v=>v<(lo+hi)/2?1:0);
+    let code=decodeLine(bits);
+    if(code)return code;
+  }
+  return null;
+}
+
+function stopCamera(){
+  if(scanTimer){
+    clearTimeout(scanTimer);
+    scanTimer=null;
+  }
+  if(stream){
+    stream.getTracks().forEach(t=>t.stop());
+    stream=null;
+  }
+  $("video").srcObject=null;
+  $("cameraBox").style.display="none";
+}
+
+async function startCamera(){
+  if(!navigator.mediaDevices?.getUserMedia){
+    alert("カメラを利用できません。HTTPSのSafariで開いてください。");
+    return;
+  }
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:"environment"}},
+      audio:false
+    });
+    let video=$("video");
+    video.srcObject=stream;
+    $("cameraBox").style.display="block";
+    await video.play();
+    let detector=null;
+    if(window.BarcodeDetector){
+      try{detector=new BarcodeDetector({formats:["ean_13"]});}
+      catch(e){}
+    }
+    async function loop(){
+      if(!stream)return;
+      let code=null;
+      try{
+        if(detector){
+          let results=await detector.detect(video);
+          code=results.map(x=>x.rawValue).find(x=>
+            /^(978|979)/.test(x)&&validISBN(x)
+          );
+        }
+        if(!code&&video.readyState>=2)code=scanFrame(video);
+      }catch(e){}
+      if(code){
+        stopCamera();
+        $("isbn").value=code;
+        alert("バーコードを読み取りました。書籍情報を検索します。");
+        lookupISBN();
+      }else{
+        scanTimer=setTimeout(loop,300);
+      }
+    }
+    loop();
+  }catch(e){
+    stopCamera();
+    alert("カメラを起動できません。Safariのカメラ権限を確認してください。");
+  }
+}
+
+async function init(){
+  try{
+    db=await openDB();
+    await refresh();
+  }catch(e){
+    alert("端末内の保存領域を利用できません。Safariの通常モードで開いてください。");
+    return;
+  }
+  document.querySelectorAll("nav button").forEach(b=>{
+    b.onclick=()=>page(b.dataset.page);
+  });
+  $("search").oninput=render;
+  $("filter").onchange=render;
+  $("photo").onchange=e=>loadPhoto(e.target.files[0]);
+  $("saveBtn").onclick=saveBook;
+  $("clearBtn").onclick=clearForm;
+  $("deleteBtn").onclick=async()=>{
+    if(editing&&confirm("この本を削除しますか？")){
+      await removeBook(editing);
+      clearForm();
+      await refresh();
+      page("shelf");
+    }
+  };
+  $("lookup").onclick=lookupISBN;
+  $("scanBtn").onclick=startCamera;
+  $("stopBtn").onclick=stopCamera;
+  $("shareGenre").onchange=updateShare;
+  $("shareType").onchange=updateShare;
+  $("agree").onchange=()=>{
+    $("shareBtn").disabled=!$("agree").checked;
+  };
+  $("shareBtn").onclick=shareBooks;
+  $("copyBtn").onclick=async()=>{
+    try{
+      await navigator.clipboard.writeText(shareMessage());
+      alert("コピーしました。LINEに貼り付けてください。");
+    }catch(e){
+      alert("コピーできませんでした。");
+    }
+  };
+  $("backupBtn").onclick=backup;
+  $("restoreFile").onchange=e=>restore(e.target.files[0]);
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden)stopCamera();
+  });
+}
+init();
+</script>
+</body>
+</html>
