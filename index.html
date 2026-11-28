@@ -3,660 +3,374 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="My本棚">
-<meta name="theme-color" content="#f6f7f2">
-
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net blob:; worker-src blob:; child-src blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://cdn.jsdelivr.net https://tessdata.projectnaptha.com blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
-
-<title>My本棚｜iPhone版</title>
+<meta name="theme-color" content="#f5f7f2">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://www.googleapis.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>My本棚 v0.5</title>
 <style>
-:root{color-scheme:light;--bg:#f6f7f2;--fg:#25332b;--deep:#24593d;--line:#dae3d9;--soft:#eaf2e9}
+:root{color-scheme:light;--bg:#f5f7f2;--ink:#26362b;--green:#286343;--edge:#d7e1d5;--pale:#edf4ec}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;font-size:16px;-webkit-text-size-adjust:100%}
-header{padding:20px 18px 16px;background:white;border-bottom:1px solid var(--line)}
-h1{margin:0;font-size:24px;color:var(--deep)}
-h2{font-size:21px;margin:10px 0 15px}
-h3{font-size:17px}
-small,.hint{font-size:12px;color:#637669;line-height:1.5}
-.hint{font-size:13px}
-main{max-width:730px;margin:auto;padding:16px 14px 105px;min-height:80vh}
-section{display:none}
-section.active{display:block}
-.panel,.item,.stat{background:#fff;border:1px solid var(--line);border-radius:16px}
-.panel{padding:16px;margin:14px 0;box-shadow:0 2px 10px #1231}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-.stat{text-align:center;padding:14px 2px}
-.stat strong{display:block;font-size:28px;color:var(--deep)}
-.stat span{font-size:11px;color:#5f7366}
-label{display:block;font-weight:650;font-size:14px;margin:14px 0 6px}
-input:not([type=file]):not([type=checkbox]),select,textarea{width:100%;background:#fff;border:1px solid #c5d2c6;padding:13px;border-radius:11px;font-size:16px;color:var(--fg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif}
+header{background:white;border-bottom:1px solid var(--edge);padding:16px}
+h1{color:var(--green);font-size:25px;margin:0}
+h2{font-size:21px;margin:6px 0 15px}
+h3{font-size:17px;margin:8px 0}
+main{max-width:760px;margin:auto;padding:16px 14px 110px}
+section{display:none}section.active{display:block}
+.card,.book,.stat{background:white;border:1px solid var(--edge);border-radius:14px;padding:14px;margin-bottom:12px}
+.note{background:var(--pale);border-radius:10px;padding:12px;color:#42634a}
+.small{font-size:12px;color:#66786a}.tip{font-size:13px;color:#5c6e62}
+label{display:block;font-size:14px;font-weight:650;margin:13px 0 6px}
+input:not([type=file]):not([type=checkbox]),select,textarea{background:white;border:1px solid #c2d2c3;border-radius:10px;font:inherit;color:var(--ink);width:100%;padding:12px}
 textarea{min-height:70px}
-button{border:0;border-radius:12px;font:inherit;font-weight:650;background:var(--soft);color:var(--deep);padding:12px;cursor:pointer}
-button.primary{background:var(--deep);color:#fff}
-button:disabled{opacity:.45;cursor:not-allowed}
-.wide{display:block;width:100%;margin-top:12px}
-.camera{position:relative;border:2px dashed #aec5ae;background:#f1f6ed;border-radius:15px;padding:16px;text-align:center}
-.camera .emoji{font-size:34px}
-.camera button{margin-top:7px}
-.row{display:flex;gap:9px;align-items:center}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}
-.item{overflow:hidden;padding:10px;min-width:0}
-.cover{height:174px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:linear-gradient(135deg,#9aaf9b,#467456);color:white;text-align:center;font-size:15px;font-weight:650;overflow:hidden;padding:8px}
+button{border:0;border-radius:10px;background:#e8f0e8;color:var(--green);font:inherit;font-weight:650;padding:11px;cursor:pointer}
+button.primary{background:var(--green);color:white}button:disabled{opacity:.45}
+.wide{width:100%;margin-top:11px}.row{display:flex;align-items:center;gap:8px}.row>*{min-width:0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{text-align:center;padding:12px 3px}
+.stat strong{display:block;color:var(--green);font-size:27px}.stat span{font-size:11px;color:#637465}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.book{min-width:0;padding:10px}.book strong{display:block;font-size:14px;overflow-wrap:anywhere;margin:8px 0}
+.book p{font-size:12px;color:#677667;overflow-wrap:anywhere}.book button{width:100%;font-size:13px}
+.cover{height:173px;border-radius:9px;background:linear-gradient(130deg,#94a98f,#396b4f);color:white;font-weight:650;display:flex;align-items:center;justify-content:center;padding:9px;text-align:center;overflow:hidden;overflow-wrap:anywhere}
 .cover img{width:100%;height:100%;object-fit:contain;background:#edf0eb}
-.item b{font-size:14px;display:block;overflow-wrap:anywhere;margin-top:10px}
-.item p{font-size:12px;color:#68786d;margin:6px 0}
-.item button{width:100%;font-size:13px;padding:9px}
-#preview{display:none;max-height:260px;max-width:100%;border-radius:10px;margin:12px auto;box-shadow:0 3px 12px #0002}
-#shareText{white-space:pre-wrap;background:#f0f5ef;border-radius:11px;padding:13px;line-height:1.7;overflow-wrap:anywhere}
-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--line);display:flex;padding:9px 4px max(10px,env(safe-area-inset-bottom));z-index:5}
-nav button{flex:1;font-size:12px;background:transparent;padding:10px 4px}
-nav button.on{background:var(--soft);color:var(--deep)}
-.error{color:#a02a2b}
-.note{background:#eef3eb;color:#395c43;border-radius:10px;padding:12px;font-size:13px;line-height:1.65}
-.chip{display:inline-block;border-radius:100px;background:#def0df;color:#215c36;font-size:12px;padding:4px 9px}
+#photoPreview{display:none;max-width:100%;max-height:250px;margin:12px auto;border-radius:10px}
+.photo-area{border:2px dashed #b3c8b2;border-radius:12px;background:#f2f6ef;padding:16px;text-align:center}
+.photo-area button{margin:5px}.status{min-height:18px;font-size:13px;color:#526a59}
+.choice{border-top:1px solid var(--edge);padding:12px 0}.choice strong{display:block;overflow-wrap:anywhere}
+.choice p{font-size:12px;color:#5e7061;margin:4px 0}.choice button{margin-top:5px}
+#sharePreview{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--pale);border-radius:10px;padding:13px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:white;border-top:1px solid var(--edge);padding:8px 4px max(8px,env(safe-area-inset-bottom));z-index:5}
+nav button{background:transparent;flex:1;font-size:12px;padding:10px 2px}
+nav button.on{background:var(--pale)}.danger{color:#ac3030}
+summary{cursor:pointer}.checkline{display:flex;gap:8px;align-items:flex-start;font-size:14px;font-weight:400}.checkline input{margin-top:6px}
+a{color:#195b3b}
 </style>
 </head>
 <body>
-<header>
-<h1>📚 My本棚</h1>
-<small>写真でかんたん登録・iPhone向け v0.3</small>
-</header>
+<header><h1>📚 My本棚</h1><div class="small">iPhone向け・個人APIキー方式 v0.5</div></header>
 <main>
-
 <section id="shelf" class="active">
 <h2>わたしの本棚</h2>
 <div class="stats">
 <div class="stat"><strong id="count">0</strong><span>登録冊数</span></div>
-<div class="stat"><strong id="genres">0</strong><span>ジャンル</span></div>
+<div class="stat"><strong id="genres">0</strong><span>ジャンル数</span></div>
 <div class="stat"><strong id="finished">0</strong><span>読了</span></div>
 </div>
-<button class="primary wide" id="gotoAdd">＋ 表紙を撮影して本を登録</button>
-<label for="search">本を探す</label>
-<input id="search" placeholder="タイトル・著者で検索" autocomplete="off">
-<label for="filter">ジャンル</label>
-<select id="filter"><option value="">すべて</option></select>
-<div class="grid" id="books"></div>
-<p id="empty" class="hint">本の登録はまだありません。表紙を撮って登録しましょう。</p>
+<button class="primary wide" id="addNew">📸 表紙を撮影して本を登録</button>
+<label for="search">本棚を検索</label><input id="search" placeholder="タイトル・著者・出版社">
+<label for="filter">ジャンル</label><select id="filter"><option value="">すべて</option></select>
+<div id="books" class="grid"></div>
+<p id="empty" class="tip">本の登録はまだありません。「本を登録」から追加してください。</p>
 </section>
-
 <section id="add">
-<h2 id="formTitle">本を登録する</h2>
-<div class="panel">
-<div class="camera">
-<div class="emoji">📸</div>
-<strong>まず本の表紙を撮影</strong>
-<div class="hint">撮影した画像はiPhone内の本棚にだけ保存します。</div>
-<button id="takePhoto" class="primary" type="button">カメラで撮影</button>
-<button id="pickPhoto" type="button">写真から選ぶ</button>
-<input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
-<input id="libraryInput" type="file" accept="image/*" style="display:none">
-<img id="preview" alt="本の表紙">
+<h2 id="formHeading">本を登録</h2>
+<div class="card">
+<div class="photo-area"><div style="font-size:30px">📷</div><strong>本の表紙を撮影・保存</strong><br>
+<button id="takePhoto" class="primary" type="button">カメラで撮る</button>
+<button id="pickPhoto" type="button">写真を選ぶ</button>
+<input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+<input type="file" id="libraryInput" accept="image/*" hidden>
+<img id="photoPreview" alt="選択した本の表紙">
+<div class="small">画像は端末内で縮小します。Googleには送信しません。</div>
 </div>
-<p class="hint">※ 表紙の文字は自動認識しません。タイトルだけ入力すれば登録できます。</p>
-<label for="bookTitle">タイトル <span class="chip">必須</span></label>
-<input id="bookTitle" placeholder="例：仕事が速い人の習慣" autocomplete="off">
-<label for="author">著者（任意）</label>
-<input id="author" placeholder="著者の名前">
+<p id="photoStatus" class="status"></p>
+</div>
+<div class="card">
+<h3>🔎 Google Booksから書籍情報を取得</h3>
+<p class="tip">本の名前を少し入力して検索。候補を選ぶとタイトル・著者・出版社などを自動入力します。表紙画像からの直接検索ではありません。</p>
+<label for="searchWord">検索するタイトル（文字を貼り付けてもOK）</label>
+<input id="searchWord" placeholder="例：嫌われる勇気" autocomplete="off">
+<label class="checkline"><input type="checkbox" id="searchConsent">検索語とご自身のAPIキーをGoogleに送信することに同意する</label>
+<button id="searchGoogle" class="primary wide" type="button">書籍の候補を検索</button>
+<p id="googleStatus" class="status" role="status"></p>
+<div id="results"></div>
+<p class="small">APIキーが未設定なら「設定」から入力してください。キーなしでも手入力登録はできます。</p>
+</div>
+<div class="card">
+<h3>登録内容</h3>
+<label for="bookTitle">タイトル（必須）</label><input id="bookTitle" placeholder="本のタイトル">
+<label for="author">著者</label><input id="author" placeholder="著者名">
+<label for="publisher">出版社</label><input id="publisher" placeholder="出版社">
+<label for="isbn">ISBN（任意）</label><input id="isbn" inputmode="numeric" placeholder="ISBN番号">
 <label for="genre">ジャンル</label>
-<select id="genre">
-<option>小説</option>
-<option>漫画</option>
-<option>ビジネス・仕事</option>
-<option>IT・技術</option>
-<option>学習・参考書</option>
-<option>子ども・絵本</option>
-<option>実用・暮らし</option>
-<option selected>その他</option>
-</select>
-<label for="status">読書状況</label>
-<select id="status">
-<option>未読</option>
-<option>読書中</option>
-<option>読了</option>
-</select>
-<details>
-<summary class="hint" style="padding:16px 0;cursor:pointer">購入日・メモを入力（任意）</summary>
-<label for="purchaseDate">購入日</label>
-<input type="date" id="purchaseDate">
-<label for="note">メモ（共有しません）</label>
-<textarea id="note" placeholder="感想、置き場所など"></textarea>
+<select id="genre"><option>小説</option><option>漫画</option><option>ビジネス・仕事</option><option>IT・技術</option><option>学習・参考書</option><option>子ども・絵本</option><option>実用・暮らし</option><option selected>その他</option></select>
+<label for="readStatus">読書状況</label><select id="readStatus"><option>未読</option><option>読書中</option><option>読了</option></select>
+<details><summary>購入日・出版日・メモ（任意）</summary>
+<label for="purchaseDate">購入日</label><input id="purchaseDate" type="date">
+<label for="publishedDate">出版日</label><input id="publishedDate" placeholder="例：2025-01-15">
+<label for="memo">メモ（共有しません）</label><textarea id="memo"></textarea>
 </details>
-<button id="save" class="primary wide" type="button">本棚に保存</button>
-<button id="clear" class="wide" type="button">入力をリセット</button>
-<button id="remove" class="wide error" type="button" style="display:none">この本を削除</button>
+<button id="saveBook" class="primary wide">本棚に保存する</button>
+<button id="clearForm" class="wide">入力をリセット</button>
+<button id="deleteBook" class="wide danger" style="display:none">この本を削除</button>
 </div>
 </section>
-
 <section id="share">
 <h2>LINEで共有</h2>
-<div class="panel">
-<p class="hint">共有されるのは選んだタイトル・著者・ジャンル別冊数だけです。表紙写真・購入日・メモは送りません。</p>
-<label for="shareGenre">共有するジャンル</label>
-<select id="shareGenre"><option value="">すべて</option></select>
-<label for="shareType">共有する内容</label>
-<select id="shareType">
-<option value="titles">タイトルの一覧</option>
-<option value="authors">タイトルと著者</option>
-<option value="counts">ジャンル別の冊数だけ</option>
-</select>
-<div id="shareText"></div>
-<label><input type="checkbox" id="agree"> 内容を確認し、共有に同意する</label>
-<button id="shareBtn" class="primary wide" type="button" disabled>LINEなどへ共有</button>
-<button id="copyBtn" class="wide" type="button">共有文をコピー</button>
+<div class="card"><p class="tip">表紙写真・購入日・メモ・APIキーは共有しません。送信する文章を必ず確認してください。</p>
+<label for="shareGenre">ジャンル</label><select id="shareGenre"><option value="">すべて</option></select>
+<label for="shareType">共有内容</label><select id="shareType"><option value="titles">タイトルの一覧</option><option value="authors">タイトルと著者</option><option value="counts">ジャンル別冊数のみ</option></select>
+<p id="sharePreview"></p>
+<label class="checkline"><input type="checkbox" id="shareConsent">この内容を共有することに同意する</label>
+<button id="shareBtn" class="primary wide" disabled>共有先を選ぶ（LINEなど）</button>
+<button id="copyBtn" class="wide">文章をコピー</button>
 </div>
 </section>
-
 <section id="settings">
-<h2>データとプライバシー</h2>
-<div class="panel">
-<p class="note">このアプリは書籍検索APIを使用しません。写真・書籍一覧はiPhoneのブラウザ内の保存領域に保管します。GitHubへ本棚の内容を送信する処理はありません。ただし、端末内の保存データ自体はアプリ独自には暗号化されません。</p>
-<h3>暗号化バックアップ</h3>
-<p class="hint">Safariのデータ削除や端末変更に備えて定期的に保存してください。旧版の .mybooks ファイルも復元可能です。</p>
-<label for="password">バックアップ用パスワード（8文字以上）</label>
-<input id="password" type="password" autocomplete="new-password" placeholder="自分だけのパスワード">
-<button id="backup" class="primary wide" type="button">暗号化バックアップを作る</button>
-<label for="restore">バックアップを読み込む</label>
-<input type="file" id="restore" accept=".mybooks,application/json">
-<p class="hint">復元すると現在の本棚を上書きします。パスワードはGitHubへ送信せず、画面を閉じても保存しません。</p>
+<h2>設定とプライバシー</h2>
+<div class="card">
+<h3>🔑 自分のGoogle Books APIキー</h3>
+<p class="tip">Google Books検索を使う人だけ設定してください。利用者ごとに自分のGoogle Cloudプロジェクトでキーを発行します。</p>
+<p><a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Google CloudでAPIキーを発行する</a></p>
+<label for="ownKey">APIキー</label><input id="ownKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="自分のAPIキーを貼り付け">
+<button id="clearKey" class="wide">APIキーを消去</button>
+<p id="keyStatus" class="status" role="status"></p>
+<p class="tip">このキーはページを表示している間のみ保持します。GitHub・IndexedDB・バックアップには保存しません。ページを閉じると再入力が必要です。</p>
+<p class="note">公開サイトなのでキーを完全な秘密にはできません。Google Cloudで「ウェブサイトの制限」と「Books APIのみ」を設定してください。APIキーを他人に送らないでください。</p>
 </div>
+<div class="card">
+<h3>🔒 暗号化バックアップ</h3>
+<p class="tip">登録データは端末内に保存します。Safariのデータ削除に備えてバックアップしてください。旧v0.1〜v0.4の .mybooks ファイルも復元できます。</p>
+<label for="password">バックアップ用パスワード（8文字以上）</label><input id="password" type="password" autocomplete="new-password">
+<button id="backup" class="primary wide">暗号化バックアップを保存</button>
+<label for="restoreFile">バックアップを復元</label><input id="restoreFile" type="file" accept=".mybooks,application/json">
+<p class="tip">復元は現在の本棚を置き換えます。バックアップのパスワードを忘れると復元できません。</p>
+</div>
+<div class="card note">GitHub Pages上のプログラムは一般公開ですが、購入履歴や撮影写真はサーバーにアップロードしません。Google検索すると検索語とAPIキー、接続に伴う通信情報がGoogleに渡ります。端末内の本棚はアプリ独自には暗号化されません。</div>
 </section>
-
 </main>
-<nav>
-<button data-page="shelf" class="on">📚 本棚</button>
-<button data-page="add">📸 登録</button>
-<button data-page="share">↗ 共有</button>
-<button data-page="settings">⚙ 設定</button>
-</nav>
-
+<nav><button data-page="shelf" class="on">📚 本棚</button><button data-page="add">📸 登録</button><button data-page="share">↗ 共有</button><button data-page="settings">⚙ 設定</button></nav>
 <script>
 'use strict';
-const $=s=>document.getElementById(s);
-const DB_NAME='mybooks-local-v1',ALT_DB='mybooks-iphone-v1';
-let db,books=[],editId=null,cover='';
+const $=id=>document.getElementById(id);
+const MAIN_DB='mybooks-local-v1', OLD_DB='mybooks-iphone-v1';
+let db,books=[],editId=null,cover='',busyPhoto=false;
+const encoder=new TextEncoder(),decoder=new TextDecoder();
 
-function openDb(name){
- return new Promise((ok,no)=>{
-  let r=indexedDB.open(name,1);
-  r.onupgradeneeded=()=>{
-   if(!r.result.objectStoreNames.contains('books'))
-    r.result.createObjectStore('books',{keyPath:'id'});
-  };
-  r.onsuccess=()=>ok(r.result);
-  r.onerror=()=>no(r.error);
- });
+function openDB(name){return new Promise((resolve,reject)=>{
+ const r=indexedDB.open(name,1);
+ r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('books'))r.result.createObjectStore('books',{keyPath:'id'});};
+ r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
+});}
+function all(d){return new Promise((resolve,reject)=>{
+ const r=d.transaction('books','readonly').objectStore('books').getAll();
+ r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
+});}
+function put(book){return new Promise((resolve,reject)=>{
+ const t=db.transaction('books','readwrite');t.objectStore('books').put(book);
+ t.oncomplete=resolve;t.onerror=()=>reject(t.error);
+});}
+function del(id){return new Promise((resolve,reject)=>{
+ const t=db.transaction('books','readwrite');t.objectStore('books').delete(id);
+ t.oncomplete=resolve;t.onerror=()=>reject(t.error);
+});}
+async function migrate(){
+ try{
+  if(localStorage.getItem('mybooks-v05-migrated')==='yes')return;
+  const old=await openDB(OLD_DB),previous=await all(old),present=await all(db);
+  const ids=new Set(present.map(b=>b.id));
+  for(const b of previous){if(b?.id&&!ids.has(b.id)){await put(b);ids.add(b.id);}}
+  old.close();localStorage.setItem('mybooks-v05-migrated','yes');
+ }catch(e){console.warn('旧データ移行を省略',e);}
 }
-function getBooks(d){
- return new Promise((ok,no)=>{
-  let r=d.transaction('books').objectStore('books').getAll();
-  r.onsuccess=()=>ok(r.result);
-  r.onerror=()=>no(r.error);
- });
-}
-function writeBook(b){
- return new Promise((ok,no)=>{
-  let t=db.transaction('books','readwrite');
-  t.objectStore('books').put(b);
-  t.oncomplete=ok;
-  t.onerror=()=>no(t.error);
- });
-}
-function deleteBook(id){
- return new Promise((ok,no)=>{
-  let t=db.transaction('books','readwrite');
-  t.objectStore('books').delete(id);
-  t.oncomplete=ok;
-  t.onerror=()=>no(t.error);
- });
-}
-async function refresh(){
- books=await getBooks(db);
- render();
-}
-async function migratePrevious(){
- let old=await openDb(ALT_DB);
- let prev=await getBooks(old);
- let present=await getBooks(db);
- let known=new Set(present.map(b=>b.id));
- for(let b of prev){
-  if(b?.id&&!known.has(b.id)){
-   await writeBook(b);
-   known.add(b.id);
-  }
- }
- old.close();
-}
-function go(page){
- document.querySelectorAll('main section').forEach(s=>s.classList.toggle('active',s.id===page));
- document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.page===page));
- window.scrollTo(0,0);
-}
-function fillSelect(id,options){
- let sel=$(id),selected=sel.value;
- sel.replaceChildren(new Option('すべて',''));
- options.forEach(x=>sel.add(new Option(x,x)));
- sel.value=selected;
-}
+function show(name){document.querySelectorAll('main section').forEach(s=>s.classList.toggle('active',s.id===name));
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.page===name));window.scrollTo(0,0);}
+function optionList(id,values){const el=$(id),old=el.value;el.replaceChildren(new Option('すべて',''));
+ for(const v of values)el.add(new Option(v,v));el.value=values.includes(old)?old:'';}
+function norm(s){return String(s||'').normalize('NFKC').toLowerCase().replace(/[\s\u3000、。・.,]/g,'');}
+async function refresh(){books=await all(db);render();}
 function render(){
- let g=[...new Set(books.map(b=>b.genre||'その他'))].sort();
- $('count').textContent=books.length;
- $('genres').textContent=g.length;
+ const gs=[...new Set(books.map(b=>b.genre||'その他'))].sort();
+ $('count').textContent=books.length;$('genres').textContent=gs.length;
  $('finished').textContent=books.filter(b=>b.status==='読了').length;
- fillSelect('filter',g);
- fillSelect('shareGenre',g);
- let q=$('search').value.trim().toLocaleLowerCase('ja'),f=$('filter').value;
- let list=books.filter(b=>
-  (!f||(b.genre||'その他')===f)&&
-  [b.title,b.author].some(s=>String(s||'').toLocaleLowerCase('ja').includes(q))
- ).sort((a,b)=>String(b.created||'').localeCompare(String(a.created||'')));
- $('books').replaceChildren();
- $('empty').hidden=list.length>0;
- for(let b of list){
-  let card=document.createElement('div');
-  card.className='item';
-  let c=document.createElement('div');
-  c.className='cover';
-  if(b.cover){
-   let img=document.createElement('img');
-   img.src=b.cover;
-   img.alt='';
-   c.append(img);
-  }else c.textContent=b.title;
-  let name=document.createElement('b');
-  name.textContent=b.title;
-  let sub=document.createElement('p');
-  sub.textContent=(b.author||'著者未入力')+' ・ '+(b.genre||'その他');
-  let btn=document.createElement('button');
-  btn.textContent='詳細・編集';
-  btn.onclick=()=>editBook(b.id);
-  card.append(c,name,sub,btn);
-  $('books').append(card);
+ optionList('filter',gs);optionList('shareGenre',gs);
+ const q=norm($('search').value),g=$('filter').value;
+ const list=books.filter(b=>(!g||(b.genre||'その他')===g)&&
+  [b.title,b.author,b.publisher,b.isbn].some(s=>norm(s).includes(q)))
+  .sort((a,b)=>String(b.created||'').localeCompare(String(a.created||'')));
+ $('books').replaceChildren();$('empty').hidden=list.length>0;
+ for(const b of list){
+  const card=document.createElement('article');card.className='book';
+  const cv=document.createElement('div');cv.className='cover';
+  if(b.cover&&/^data:image\/(jpeg|png|webp);base64,/.test(b.cover)){
+   const im=document.createElement('img');im.src=b.cover;im.alt='';cv.append(im);
+  }else cv.textContent=b.title;
+  const name=document.createElement('strong');name.textContent=b.title;
+  const meta=document.createElement('p');meta.textContent=[b.author,b.publisher,b.genre,b.status].filter(Boolean).join(' / ');
+  const edit=document.createElement('button');edit.textContent='詳細・編集';edit.onclick=()=>editBook(b.id);
+  card.append(cv,name,meta,edit);$('books').append(card);
  }
  updateShare();
 }
-function reset(){
- editId=null;
- cover='';
- ['bookTitle','author','purchaseDate','note'].forEach(k=>$(k).value='');
- $('genre').value='その他';
- $('status').value='未読';
- $('cameraInput').value='';
- $('libraryInput').value='';
- $('preview').style.display='none';
- $('preview').removeAttribute('src');
- $('formTitle').textContent='本を登録する';
- $('remove').style.display='none';
+function resetForm(){
+ editId=null;cover='';
+ ['bookTitle','author','publisher','isbn','purchaseDate','publishedDate','memo','searchWord'].forEach(id=>$(id).value='');
+ $('genre').value='その他';$('readStatus').value='未読';
+ $('cameraInput').value='';$('libraryInput').value='';$('photoPreview').removeAttribute('src');$('photoPreview').style.display='none';
+ $('formHeading').textContent='本を登録';$('deleteBook').style.display='none';
+ $('results').replaceChildren();$('googleStatus').textContent='';$('photoStatus').textContent='';$('searchConsent').checked=false;
 }
 function editBook(id){
- let b=books.find(x=>x.id===id);
- if(!b)return;
- reset();
- editId=id;
- $('formTitle').textContent='本を編集する';
- $('bookTitle').value=b.title||'';
- $('author').value=b.author||'';
- $('genre').value=b.genre||'その他';
- if(!$('genre').value){
-  $('genre').add(new Option(b.genre,b.genre));
-  $('genre').value=b.genre;
- }
- $('status').value=b.status||'未読';
- $('purchaseDate').value=b.purchaseDate||b.date||'';
- $('note').value=b.note||'';
+ const b=books.find(x=>x.id===id);if(!b)return;
+ resetForm();editId=id;$('formHeading').textContent='本を編集';
+ $('bookTitle').value=b.title||'';$('author').value=b.author||'';$('publisher').value=b.publisher||'';
+ $('isbn').value=b.isbn||'';$('purchaseDate').value=b.purchaseDate||b.date||'';
+ $('publishedDate').value=b.publishedDate||'';$('memo').value=b.note||'';
+ if(b.genre&&![...$('genre').options].some(o=>o.value===b.genre))$('genre').add(new Option(b.genre,b.genre));
+ $('genre').value=b.genre||'その他';$('readStatus').value=b.status||'未読';
  cover=b.cover||'';
- if(cover){
-  $('preview').src=cover;
-  $('preview').style.display='block';
- }
- $('remove').style.display='block';
- go('add');
+ if(cover){$('photoPreview').src=cover;$('photoPreview').style.display='block';}
+ $('deleteBook').style.display='block';show('add');
 }
-function normalize(s){
- return String(s||'').normalize('NFKC').toLowerCase().replace(/[\s\u3000.,、。・\-ー]/g,'');
-}
-async function save(){
- let title=$('bookTitle').value.trim();
+async function saveBook(){
+ if(busyPhoto)return alert('写真の処理が終わってから保存してください。');
+ const title=$('bookTitle').value.trim(),isbn=$('isbn').value.trim();
  if(!title)return alert('タイトルを入力してください。');
- let author=$('author').value.trim();
- let same=books.find(b=>b.id!==editId&&normalize(b.title)===normalize(title));
- if(same&&!confirm('「'+same.title+'」は登録済みの可能性があります。続けて登録しますか？'))return;
- let old=books.find(b=>b.id===editId);
- let date=$('purchaseDate').value;
- let b={
-  ...old,
-  id:editId||crypto.randomUUID(),
-  created:old?.created||new Date().toISOString(),
-  title,author,
-  genre:$('genre').value,
-  status:$('status').value,
-  purchaseDate:date,
-  date,
-  note:$('note').value,
-  cover
- };
- try{
-  await writeBook(b);
-  reset();
-  await refresh();
-  go('shelf');
-  alert('本棚に保存しました。');
- }catch(e){
-  alert('保存できません。端末の保存容量をご確認ください。');
- }
+ const duplicate=books.find(b=>b.id!==editId&&((isbn&&b.isbn===isbn)||norm(b.title)===norm(title)));
+ if(duplicate&&!confirm('登録済みの本かもしれません。重複して登録しますか？'))return;
+ const old=books.find(b=>b.id===editId);
+ const date=$('purchaseDate').value;
+ const book={...old,id:editId||crypto.randomUUID(),created:old?.created||new Date().toISOString(),
+  title,author:$('author').value.trim(),publisher:$('publisher').value.trim(),isbn,
+  publishedDate:$('publishedDate').value.trim(),genre:$('genre').value,status:$('readStatus').value,
+  purchaseDate:date,date,note:$('memo').value,cover};
+ try{await put(book);resetForm();await refresh();show('shelf');alert('本棚に保存しました。');}
+ catch(e){alert('保存に失敗しました。空き容量を確認してください。');}
 }
-async function addPhoto(file){
+async function loadPhoto(file){
  if(!file)return;
  if(file.size>30000000)return alert('30MB以下の写真を選んでください。');
- let url=URL.createObjectURL(file),image=new Image();
+ busyPhoto=true;$('saveBook').disabled=true;$('photoStatus').textContent='写真を処理しています…';
+ const url=URL.createObjectURL(file),img=new Image();
  try{
-  await new Promise((ok,no)=>{
-   image.onload=ok;
-   image.onerror=no;
-   image.src=url;
-  });
-  let scale=Math.min(1,600/image.width,850/image.height);
-  let canvas=document.createElement('canvas');
-  canvas.width=Math.max(1,Math.round(image.width*scale));
-  canvas.height=Math.max(1,Math.round(image.height*scale));
-  canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
-  let data=canvas.toDataURL('image/jpeg',0.64);
-  if(data.length>1200000)throw Error('画像サイズ');
-  cover=data;
-  $('preview').src=data;
-  $('preview').style.display='block';
- }catch(e){
-  alert('画像を読み込めませんでした。写真アプリから画像を選び直してください。');
- }finally{
-  URL.revokeObjectURL(url);
+  await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url;});
+  const scale=Math.min(1,600/img.naturalWidth,850/img.naturalHeight),c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(img.naturalWidth*scale));c.height=Math.max(1,Math.round(img.naturalHeight*scale));
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  const data=c.toDataURL('image/jpeg',.66);
+  if(data.length>1300000)throw Error('size');
+  cover=data;$('photoPreview').src=data;$('photoPreview').style.display='block';
+  $('photoStatus').textContent='表紙写真を登録フォームに反映しました（まだ保存されていません）。';
+ }catch(e){$('photoStatus').textContent='この写真は読み込めません。別の写真を選んでください。';}
+ finally{URL.revokeObjectURL(url);busyPhoto=false;$('saveBook').disabled=false;}
+}
+function getGenre(categories){const s=(categories||[]).join(' ');
+ if(/computer|programming|IT|プログラミング|情報処理/i.test(s))return 'IT・技術';
+ if(/business|management|経営|ビジネス/i.test(s))return 'ビジネス・仕事';
+ if(/novel|fiction|小説/i.test(s))return '小説';
+ if(/manga|comic|漫画/i.test(s))return '漫画';return '';
+}
+function presentResults(items){
+ $('results').replaceChildren();
+ if(!items.length){$('googleStatus').textContent='該当する本は見つかりませんでした。別の単語で検索してください。';return;}
+ $('googleStatus').textContent=items.length+'件の候補が見つかりました。正しい本を選択してください。';
+ for(const item of items){
+  const info=item?.volumeInfo;if(!info?.title)continue;
+  const div=document.createElement('div');div.className='choice';
+  const h=document.createElement('strong');h.textContent=info.title;
+  const desc=document.createElement('p');desc.textContent=[(info.authors||[]).join('、'),info.publisher,info.publishedDate].filter(Boolean).join(' / ');
+  const btn=document.createElement('button');btn.textContent='この本の情報を入力';
+  btn.onclick=()=>{
+   $('bookTitle').value=info.title;$('author').value=(info.authors||[]).join('、');
+   $('publisher').value=info.publisher||'';$('publishedDate').value=info.publishedDate||'';
+   const ids=(info.industryIdentifiers||[]),isbn=ids.find(x=>x.type==='ISBN_13')||ids.find(x=>x.type==='ISBN_10');
+   $('isbn').value=isbn?.identifier||'';
+   const genre=getGenre(info.categories);
+   if(genre&&$('genre').value==='その他')$('genre').value=genre;
+   $('googleStatus').textContent='書籍情報を入力しました。内容を確認して保存してください。';
+   $('bookTitle').scrollIntoView({behavior:'smooth',block:'center'});
+  };
+  div.append(h,desc,btn);$('results').append(div);
  }
+}
+async function searchGoogle(){
+ const key=$('ownKey').value.trim(),q=($('searchWord').value.trim()||$('bookTitle').value.trim()).slice(0,120);
+ if(!key){$('googleStatus').textContent='先に「設定」でご自身のAPIキーを入力してください。';return;}
+ if(!q){$('googleStatus').textContent='検索するタイトルを入力してください。';return;}
+ if(!$('searchConsent').checked){$('googleStatus').textContent='Googleへの送信に同意してください。';return;}
+ $('searchGoogle').disabled=true;$('results').replaceChildren();$('googleStatus').textContent='Google Booksで検索中…';
+ const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),12000);
+ try{
+  const url=new URL('https://www.googleapis.com/books/v1/volumes');
+  url.searchParams.set('q',q);url.searchParams.set('maxResults','8');url.searchParams.set('printType','books');url.searchParams.set('key',key);
+  const response=await fetch(url.toString(),{method:'GET',credentials:'omit',cache:'no-store',referrerPolicy:'strict-origin-when-cross-origin',signal:abort.signal});
+  if(!response.ok){
+   if(response.status===400||response.status===403)throw Error('APIキーやGoogle CloudのAPI制限を確認してください（'+response.status+'）。');
+   if(response.status===429)throw Error('APIの利用回数制限に達しました。');
+   throw Error('通信エラー '+response.status);
+  }
+  const data=await response.json();presentResults(Array.isArray(data.items)?data.items:[]);
+ }catch(e){$('googleStatus').textContent=e.name==='AbortError'?'通信がタイムアウトしました。':'検索に失敗しました。'+e.message;}
+ finally{clearTimeout(timer);$('searchGoogle').disabled=false;}
 }
 function shareText(){
- let genre=$('shareGenre').value,type=$('shareType').value;
- let list=books.filter(b=>!genre||(b.genre||'その他')===genre);
- if(type==='counts'){
-  let c={};
-  list.forEach(b=>{
-   let g=b.genre||'その他';
-   c[g]=(c[g]||0)+1;
-  });
-  return '【私の本棚】\n'+
-   Object.entries(c).map(([g,n])=>g+'：'+n+'冊').join('\n')+
-   '\n合計：'+list.length+'冊';
- }
- return '【私の本棚'+(genre?'・'+genre:'')+'】\n'+
-  list.length+'冊\n'+
-  list.map((b,i)=>(i+1)+'. '+b.title+
-   (type==='authors'&&b.author?'／'+b.author:'')
-  ).join('\n');
+ const g=$('shareGenre').value,type=$('shareType').value,arr=books.filter(b=>!g||(b.genre||'その他')===g);
+ if(type==='counts'){const counts={};for(const b of arr){const n=b.genre||'その他';counts[n]=(counts[n]||0)+1;}
+  return '【私の本棚】\n'+Object.entries(counts).map(([k,v])=>k+'：'+v+'冊').join('\n')+'\n合計：'+arr.length+'冊';}
+ return '【私の本棚'+(g?'・'+g:'')+'】\n'+arr.length+'冊\n'+
+  arr.map((b,i)=>(i+1)+'. '+b.title+(type==='authors'&&b.author?'／'+b.author:'')).join('\n');
 }
-function updateShare(){
- $('shareText').textContent=shareText();
- $('agree').checked=false;
- $('shareBtn').disabled=true;
+function updateShare(){$('sharePreview').textContent=shareText();$('shareConsent').checked=false;$('shareBtn').disabled=true;}
+async function share(){if(!$('shareConsent').checked)return;
+ try{if(navigator.share)await navigator.share({title:'私の本棚',text:shareText()});
+ else{await navigator.clipboard.writeText(shareText());alert('文章をコピーしました。LINEに貼り付けてください。');}}
+ catch(e){if(e.name!=='AbortError')alert('共有できませんでした。「文章をコピー」を利用してください。');}
 }
-async function doShare(){
- if(!$('agree').checked)return;
- try{
-  if(navigator.share){
-   await navigator.share({title:'私の本棚',text:shareText()});
-  }else{
-   await navigator.clipboard.writeText(shareText());
-   alert('コピーしました。LINEに貼り付けてください。');
-  }
- }catch(e){
-  if(e.name!=='AbortError')
-   alert('共有できませんでした。「共有文をコピー」をご利用ください。');
- }
-}
-const enc=new TextEncoder(),dec=new TextDecoder();
-function to64(a){
- let str='';
- new Uint8Array(a).forEach(x=>str+=String.fromCharCode(x));
- return btoa(str);
-}
-function from64(s){
- return Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-}
-async function secretKey(password,salt){
- let imported=await crypto.subtle.importKey(
-  'raw',enc.encode(password),'PBKDF2',false,['deriveKey']
- );
- return crypto.subtle.deriveKey(
-  {name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},
-  imported,{name:'AES-GCM',length:256},false,['encrypt','decrypt']
- );
-}
+function toB64(bytes){let s='';for(const n of new Uint8Array(bytes))s+=String.fromCharCode(n);return btoa(s);}
+function fromB64(str){return Uint8Array.from(atob(str),c=>c.charCodeAt(0));}
+async function derive(password,salt){const raw=await crypto.subtle.importKey('raw',encoder.encode(password),'PBKDF2',false,['deriveKey']);
+ return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},raw,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
 async function backup(){
- let pass=$('password').value;
- if(pass.length<8)return alert('8文字以上のパスワードを指定してください。');
+ const pass=$('password').value;if(pass.length<8)return alert('8文字以上のパスワードが必要です。');
  try{
-  let salt=crypto.getRandomValues(new Uint8Array(16));
-  let iv=crypto.getRandomValues(new Uint8Array(12));
-  let key=await secretKey(pass,salt);
-  let encrypted=await crypto.subtle.encrypt(
-   {name:'AES-GCM',iv},key,enc.encode(JSON.stringify(books))
-  );
-  let data=JSON.stringify({
-   format:'MYBOOKS1',
-   salt:to64(salt),
-   iv:to64(iv),
-   data:to64(encrypted)
-  });
-  let filename='mybooks-'+new Date().toISOString().slice(0,10)+'.mybooks';
-  let blob=new Blob([data],{type:'application/json'});
-  $('password').value='';
-  if(navigator.canShare&&navigator.share){
-   let file=new File([blob],filename,{type:'application/json'});
-   if(navigator.canShare({files:[file]})){
-    await navigator.share({files:[file],title:'My本棚 暗号化バックアップ'});
-    return;
-   }
-  }
-  let url=URL.createObjectURL(blob);
-  let a=document.createElement('a');
-  a.href=url;
-  a.download=filename;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),30000);
-  alert('バックアップを保存してください。');
- }catch(e){
-  if(e.name!=='AbortError')
-   alert('バックアップを作成できませんでした。');
- }
+  const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+  const key=await derive(pass,salt),cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,encoder.encode(JSON.stringify(books)));
+  const output=JSON.stringify({format:'MYBOOKS1',salt:toB64(salt),iv:toB64(iv),data:toB64(cipher)});
+  const filename='mybooks-'+new Date().toISOString().slice(0,10)+'.mybooks';
+  const blob=new Blob([output],{type:'application/json'});$('password').value='';
+  if(navigator.canShare&&navigator.share){const file=new File([blob],filename,{type:'application/json'});
+   if(navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'My本棚の暗号化バックアップ'});return;}}
+  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=filename;document.body.append(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),30000);alert('バックアップファイルを安全な場所に保存してください。');
+ }catch(e){if(e.name!=='AbortError')alert('バックアップできませんでした。');}
 }
 async function restore(file){
- if(!file)return;
- let pass=$('password').value;
- if(!pass)return alert('バックアップのパスワードを入力してください。');
- if(file.size>50000000)return alert('バックアップファイルが大きすぎます。');
+ if(!file)return;const pass=$('password').value;
+ if(!pass){alert('バックアップ時のパスワードを入力してください。');$('restoreFile').value='';return;}
+ if(file.size>50000000){alert('ファイルが大きすぎます。');$('restoreFile').value='';return;}
  try{
-  let obj=JSON.parse(await file.text());
-  if(obj.format!=='MYBOOKS1')throw Error('format');
-  let key=await secretKey(pass,from64(obj.salt));
-  let raw=await crypto.subtle.decrypt(
-   {name:'AES-GCM',iv:from64(obj.iv)},key,from64(obj.data)
-  );
-  let list=JSON.parse(dec.decode(raw));
-  if(!Array.isArray(list)||list.length>5000||
-   list.some(b=>!b||typeof b.id!=='string'||
-   typeof b.title!=='string'||!b.title||
-   (b.cover&&(!/^data:image\/(jpeg|png|webp);base64,/.test(b.cover)||
-   b.cover.length>1500000))))throw Error('data');
-  if(!confirm('現在の本棚をバックアップ（'+list.length+'冊）で置き換えますか？'))return;
-  await new Promise((ok,no)=>{
-   let t=db.transaction('books','readwrite');
-   let s=t.objectStore('books');
-   s.clear();
-   list.forEach(b=>s.put(b));
-   t.oncomplete=ok;
-   t.onerror=()=>no(t.error);
-  });
-  $('password').value='';
-  await refresh();
-  go('shelf');
-  alert('バックアップを復元しました。');
- }catch(e){
-  alert('復元できませんでした。パスワードやファイルを確認してください。');
- }finally{
-  $('restore').value='';
- }
+  const raw=JSON.parse(await file.text());if(raw.format!=='MYBOOKS1')throw Error('format');
+  const key=await derive(pass,fromB64(raw.salt));
+  const decrypted=await crypto.subtle.decrypt({name:'AES-GCM',iv:fromB64(raw.iv)},key,fromB64(raw.data));
+  const list=JSON.parse(decoder.decode(decrypted));
+  if(!Array.isArray(list)||list.length>5000||list.some(b=>!b||typeof b.id!=='string'||!b.id||typeof b.title!=='string'||!b.title||
+   (b.cover&&(!/^data:image\/(jpeg|png|webp);base64,/.test(b.cover)||b.cover.length>1500000))))throw Error('data');
+  if(!confirm('今の本棚をバックアップの'+list.length+'冊に置き換えますか？'))return;
+  await new Promise((ok,no)=>{const t=db.transaction('books','readwrite'),s=t.objectStore('books');s.clear();for(const b of list)s.put(b);t.oncomplete=ok;t.onerror=()=>no(t.error);});
+  $('password').value='';await refresh();show('shelf');alert('復元しました。');
+ }catch(e){alert('復元できません。パスワードかファイルを確認してください。');}
+ finally{$('restoreFile').value='';}
 }
 async function init(){
- try{
-  db=await openDb(DB_NAME);
-  await migratePrevious();
-  await refresh();
- }catch(e){
-  alert('データベースを開けません。Safariの通常モードでお試しください。');
-  return;
- }
- document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.page));
- $('gotoAdd').onclick=()=>{reset();go('add');};
- $('search').oninput=render;
- $('filter').onchange=render;
- $('takePhoto').onclick=()=>$('cameraInput').click();
- $('pickPhoto').onclick=()=>$('libraryInput').click();
- $('cameraInput').onchange=e=>addPhoto(e.target.files[0]);
- $('libraryInput').onchange=e=>addPhoto(e.target.files[0]);
- $('save').onclick=save;
- $('clear').onclick=reset;
- $('remove').onclick=async()=>{
-  if(editId&&confirm('この本を削除しますか？')){
-   await deleteBook(editId);
-   reset();
-   await refresh();
-   go('shelf');
-  }
- };
- $('shareGenre').onchange=updateShare;
- $('shareType').onchange=updateShare;
- $('agree').onchange=()=>$('shareBtn').disabled=!$('agree').checked;
- $('shareBtn').onclick=doShare;
- $('copyBtn').onclick=async()=>{
-  try{
-   await navigator.clipboard.writeText(shareText());
-   alert('コピーしました。LINEに貼り付けてください。');
-  }catch(e){
-   alert('コピーできませんでした。');
-  }
- };
- $('backup').onclick=backup;
- $('restore').onchange=e=>restore(e.target.files[0]);
+ try{db=await openDB(MAIN_DB);await migrate();await refresh();}
+ catch(e){alert('端末内のデータベースを開けません。Safariの通常モードで開いてください。');return;}
+ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.page));
+ $('addNew').onclick=()=>{resetForm();show('add');};
+ $('search').oninput=render;$('filter').onchange=render;
+ $('takePhoto').onclick=()=>$('cameraInput').click();$('pickPhoto').onclick=()=>$('libraryInput').click();
+ $('cameraInput').onchange=e=>loadPhoto(e.target.files[0]);$('libraryInput').onchange=e=>loadPhoto(e.target.files[0]);
+ $('saveBook').onclick=saveBook;$('clearForm').onclick=resetForm;
+ $('deleteBook').onclick=async()=>{if(editId&&confirm('この本を削除しますか？')){await del(editId);resetForm();await refresh();show('shelf');}};
+ $('searchGoogle').onclick=searchGoogle;$('clearKey').onclick=()=>{$('ownKey').value='';$('keyStatus').textContent='キーを消去しました。';};
+ window.addEventListener('pagehide',()=>{$('ownKey').value='';});
+ $('shareGenre').onchange=updateShare;$('shareType').onchange=updateShare;
+ $('shareConsent').onchange=()=>{$('shareBtn').disabled=!$('shareConsent').checked;};$('shareBtn').onclick=share;
+ $('copyBtn').onclick=async()=>{try{await navigator.clipboard.writeText(shareText());alert('コピーしました。');}catch(e){alert('コピーできませんでした。');}};
+ $('backup').onclick=backup;$('restoreFile').onchange=e=>restore(e.target.files[0]);
 }
 init();
- 
-/* My本棚 v0.3 表紙写真OCR：既存データベースは変更しません */
-(() => {
-  const area = document.querySelector('.camera');
-  if (!area) return;
-  const box = document.createElement('div');
-  box.style.cssText = 'margin-top:12px;padding:12px;text-align:left;background:white;border:1px solid #dae3d9;border-radius:12px';
-  box.innerHTML = `<b>✨ 表紙からタイトル・著者を自動入力</b>
-    <p id="ocrStatus" class="hint" role="status">写真を撮ると文字認識します。最初の1回は日本語認識データを取得します。</p>
-    <div id="ocrCandidates"></div>
-    <button id="ocrRetry" type="button" style="display:none;width:100%">もう一度認識する</button>
-    <details><summary class="hint">認識できないとき：iPhoneの文字コピーを使う</summary>
-      <p class="hint">「写真」アプリで表紙を開き、文字を長押ししてコピー。下に貼り付けてください。</p>
-      <textarea id="ocrPaste" placeholder="写真からコピーした文字を貼り付け"></textarea>
-      <button id="ocrFromPaste" type="button" style="width:100%">貼り付けた文字を候補にする</button>
-    </details>`;
-  area.append(box);
-  const el = id => document.getElementById(id);
-  let worker, lastPhoto, running = false, loading;
-  function lines(text) {
-    const seen = new Set();
-    return String(text).split(/[\r\n]+/).map(s => s.normalize('NFKC')
-      .replace(/([一-龯ぁ-んァ-ヶ])\s+(?=[一-龯ぁ-んァ-ヶ])/g,'$1')
-      .replace(/^[\s「『【“]+|[\s」』】”]+$/g,'').trim())
-      .filter(s => {
-        if (s.length < 2 || s.length > 65 || seen.has(s) ||
-            /^(ISBN|定価|価格|税込|https?:|www\.)/i.test(s)) return false;
-        seen.add(s); return true;
-      }).slice(0,16);
-  }
-  function putCandidates(text) {
-    const out = el('ocrCandidates'); out.replaceChildren();
-    const list = lines(text), title = el('bookTitle'), author = el('author');
-    if (!list.length) {
-      el('ocrStatus').textContent = '文字が見つかりませんでした。撮り直すか手入力してください。';
-      return;
-    }
-    if (!title.value.trim()) title.value = list.find(s => !/^(著者|著|作|訳)[:：\s]/.test(s)) || list[0];
-    const possibleAuthor = list.map(s =>
-      s.match(/^(?:著者|著|作者|作|原作)[:：\s]+(.{2,30})$/)?.[1] ||
-      s.match(/^(.{2,25}?)\s*(?:著|作)$/)?.[1]
-    ).find(Boolean);
-    if (possibleAuthor && !author.value.trim()) author.value = possibleAuthor;
-    el('ocrStatus').textContent = '候補を入力しました。正しいか確認してください。別の候補も選べます。';
-    for (const s of list.slice(0,10)) {
-      const row = document.createElement('div');
-      row.style.cssText = 'border-top:1px solid #e5ebe3;padding:8px 0;overflow-wrap:anywhere';
-      const line = document.createElement('div'); line.textContent = s;
-      const t = document.createElement('button'); t.type='button'; t.textContent='タイトルにする';
-      const a = document.createElement('button'); a.type='button'; a.textContent='著者にする';
-      for (const btn of [t,a]) btn.style.cssText = 'font-size:12px;margin:5px 5px 0 0;padding:7px';
-      t.onclick = () => { title.value=s; }; a.onclick = () => { author.value=s; };
-      row.append(line,t,a); out.append(row);
-    }
-  }
-  function loadOCR() {
-    if (window.Tesseract?.createWorker) return Promise.resolve(window.Tesseract);
-    if (!loading) loading = new Promise((ok,no) => {
-      const sc=document.createElement('script');
-      sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';
-      sc.onload=()=>window.Tesseract?.createWorker ? ok(window.Tesseract) : no(Error('engine'));
-      sc.onerror=()=>no(Error('network'));
-      document.head.append(sc);
-    }).catch(e=>{ loading=null; throw e; });
-    return loading;
-  }
-  async function shrink(file) {
-    const url=URL.createObjectURL(file), img=new Image();
-    try {
-      await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url;});
-      const k=Math.min(1,1800/Math.max(img.naturalWidth,img.naturalHeight));
-      const cv=document.createElement('canvas');
-      cv.width=Math.max(1,Math.round(img.naturalWidth*k));
-      cv.height=Math.max(1,Math.round(img.naturalHeight*k));
-      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-      return await new Promise((ok,no)=>cv.toBlob(b=>b?ok(b):no(Error('image')),'image/jpeg',.87));
-    } finally {URL.revokeObjectURL(url);}
-  }
-  async function recognize(file) {
-    if (!file || running) return;
-    lastPhoto=file; running=true;
-    el('ocrCandidates').replaceChildren(); el('save').disabled=true;
-    el('ocrRetry').style.display='none';
-    try {
-      el('ocrStatus').textContent='日本語文字認識を準備しています…';
-      const T=await loadOCR();
-      if (!worker) worker=await T.createWorker(['jpn','eng'],1);
-      el('ocrStatus').textContent='表紙を読み取り中…';
-      const picture=await shrink(file);
-      const result=await worker.recognize(picture);
-      putCandidates(result.data.text);
-    } catch(e) {
-      el('ocrStatus').textContent='認識に失敗しました。通信環境を確認するか、下の文字コピーをお試しください。';
-    } finally {
-      running=false; el('save').disabled=false;
-      el('ocrRetry').style.display=lastPhoto?'block':'none';
-    }
-  }
-  ['cameraInput','libraryInput'].forEach(id =>
-    el(id).addEventListener('change',e=>recognize(e.target.files[0])));
-  el('ocrRetry').onclick=()=>recognize(lastPhoto);
-  el('ocrFromPaste').onclick=()=>putCandidates(el('ocrPaste').value);
-  function clear() {
-    lastPhoto=null; el('ocrCandidates').replaceChildren();
-    el('ocrStatus').textContent='写真を撮ると文字認識します。';
-    el('ocrRetry').style.display='none'; el('ocrPaste').value='';
-  }
-  el('clear').addEventListener('click',clear);
-  el('gotoAdd').addEventListener('click',clear);
-})();
-
 </script>
 </body>
 </html>
